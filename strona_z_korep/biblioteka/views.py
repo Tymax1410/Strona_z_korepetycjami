@@ -90,7 +90,6 @@ def osoba_list_html(request):
 def osoba_detail_html(request, id):
     # pobieramy konkretny obiekt Osoba
     osoba = Osoba.objects.get(id=id)
-
     return render(request,
                   "biblioteka/osoba/detail.html",
                   {'osoba': osoba})
