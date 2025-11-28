@@ -57,3 +57,40 @@ def book_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 # Create your views here.
+# kod umieszczamy w pliku views.py wybranej aplikacji
+
+from django.http import HttpResponse
+import datetime
+
+
+def welcome_view(request):
+    now = datetime.datetime.now()
+    html = f"""
+        <html><body>
+        Witaj użytkowniku! </br>
+        Aktualna data i czas na serwerze: {now}.
+        </body></html>"""
+    return HttpResponse(html)
+
+
+# pominięto inne importy
+from .models import Osoba
+# dodajemy brakujący import, chcoiaż w teorii pownien on nadal znajdować sie na górze pliku views.py
+from django.shortcuts import render
+
+def osoba_list_html(request):
+    # pobieramy wszystkie obiekty Osoba z bazy poprzez QuerySet
+    osoby = Osoba.objects.all()
+
+    return render(request,
+                  "biblioteka/osoba/list.html",
+                  {'osoby': osoby})
+
+
+def osoba_detail_html(request, id):
+    # pobieramy konkretny obiekt Osoba
+    osoba = Osoba.objects.get(id=id)
+
+    return render(request,
+                  "biblioteka/osoba/detail.html",
+                  {'osoba': osoba})
