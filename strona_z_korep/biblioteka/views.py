@@ -1,9 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Book
 from .serializers import BookSerializer
+from django.http import Http404, HttpResponse
 
 # określamy dostępne metody żądania dla tego endpointu
 @api_view(['GET', "POST"])
@@ -89,7 +90,43 @@ def osoba_list_html(request):
 
 def osoba_detail_html(request, id):
     # pobieramy konkretny obiekt Osoba
-    osoba = Osoba.objects.get(id=id)
+    try:
+        osoba = Osoba.objects.get(id=id)
+    except Osoba.DoesNotExist:
+        raise Http404("Obiekt Osoba o podanym id nie istnieje")
+
     return render(request,
                   "biblioteka/osoba/detail.html",
                   {'osoba': osoba})
+
+
+def osoba_create_html(request):
+    stanowiska = Stanowisko.objects.all()  # pobieramy listę stanowisk z bazy
+
+    if request.method == "GET":
+        return render(request, "biblioteka/osoba/create.html", {'stanowiska': stanowiska})
+    elif request.method == "POST":
+        imie = request.POST.get('imie')
+        nazwisko = request.POST.get('nazwisko')
+        plec = request.POST.get('plec')
+        stanowisko_id = request.POST.get('stanowisko')
+
+        if imie and nazwisko and plec and stanowisko_id:
+            # pobieramy obiekt stanowiska
+            try:
+                stanowisko_obj = Stanowisko.objects.get(id=stanowisko_id)
+            except Stanowisko.DoesNotExist:
+                error = "Wybrane stanowisko nie istnieje."
+                return render(request, "biblioteka/osoba/create.html", {'error': error, 'stanowiska': stanowiska})
+
+            # tworzymy nową osobę
+            Osoba.objects.create(
+                imie=imie,
+                nazwisko=nazwisko,
+                plec=plec,
+                stanowisko=stanowisko_obj
+            )
+            return redirect('osoba-list')
+        else:
+            error = "Wszystkie pola są wymagane."
+            return render(request, "biblioteka/osoba/create.html", {'error': error, 'stanowiska': stanowiska})
