@@ -2,9 +2,12 @@ from django.shortcuts import render, redirect
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Book
+import datetime
 from .serializers import BookSerializer
 from django.http import Http404, HttpResponse
+from .forms import OsobaForm
+from .models import Osoba, Stanowisko, Book
+
 
 # określamy dostępne metody żądania dla tego endpointu
 @api_view(['GET', "POST"])
@@ -60,9 +63,6 @@ def book_detail(request, pk):
 # Create your views here.
 # kod umieszczamy w pliku views.py wybranej aplikacji
 
-from django.http import HttpResponse
-import datetime
-
 
 def welcome_view(request):
     now = datetime.datetime.now()
@@ -73,11 +73,6 @@ def welcome_view(request):
         </body></html>"""
     return HttpResponse(html)
 
-
-# pominięto inne importy
-from .models import Osoba
-# dodajemy brakujący import, chcoiaż w teorii pownien on nadal znajdować sie na górze pliku views.py
-from django.shortcuts import render
 
 def osoba_list_html(request):
     # pobieramy wszystkie obiekty Osoba z bazy poprzez QuerySet
@@ -95,9 +90,13 @@ def osoba_detail_html(request, id):
     except Osoba.DoesNotExist:
         raise Http404("Obiekt Osoba o podanym id nie istnieje")
 
-    return render(request,
-                  "biblioteka/osoba/detail.html",
-                  {'osoba': osoba})
+    if request.method == "GET":
+        return render(request,
+                    "biblioteka/osoba/detail.html",
+                    {'osoba': osoba})
+    if request.method == "POST":
+        osoba.delete()
+        return redirect('osoba-list') 
 
 
 def osoba_create_html(request):
@@ -130,3 +129,16 @@ def osoba_create_html(request):
         else:
             error = "Wszystkie pola są wymagane."
             return render(request, "biblioteka/osoba/create.html", {'error': error, 'stanowiska': stanowiska})
+
+def osoba_create_django_form(request):
+    if request.method == "POST":
+        form = OsobaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('osoba-list')  
+    else:
+        form = OsobaForm()
+
+    return render(request,
+                  "biblioteka/osoba/create_django.html",
+                  {'form': form})
