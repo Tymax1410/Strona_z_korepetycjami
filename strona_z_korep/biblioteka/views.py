@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
+from django.core.exceptions import PermissionDenied
 from rest_framework import status
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
@@ -122,15 +123,17 @@ def drf_token_required(view_func):
         if not token_key:
             return redirect('drf-token-login')
         try:
-            Token.objects.get(key=token_key)
+            token = Token.objects.get(key=token_key)
         except Token.DoesNotExist:
             return redirect('drf-token-login')
+        request.user = token.user
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
 
 #@login_required(login_url='user-login')
 @drf_token_required
+@permission_required('biblioteka.view_osoba', raise_exception=True)
 def osoba_list_html(request):
     # pobieramy wszystkie obiekty Osoba z bazy poprzez QuerySet
     osoby = Osoba.objects.all()
@@ -217,3 +220,21 @@ def user_logout(request):
     logout(request)
     return redirect('user-login')
 
+@login_required(login_url='user-login')
+def osoba_view(request, pk):
+    if not request.user.has_perm('biblioteka.view_osoba'):
+        raise PermissionDenied()
+    try:
+        osoba = Osoba.objects.get(pk=pk)
+        return HttpResponse(f"Ten użytkownik nazywa się {osoba.imie} {osoba.nazwisko}")
+    except Osoba.DoesNotExist:
+        return HttpResponse(f"W bazie nie ma użytkownika o id={pk}.")
+
+@login_required(login_url='user-login')
+@permission_required('biblioteka.view_osoba', raise_exception=True)
+def osoba_view_decorator(request, pk):
+    try:
+        osoba = Osoba.objects.get(pk=pk)
+        return HttpResponse(f"Ten użytkownik nazywa się {osoba.imie} {osoba.nazwisko}")
+    except Osoba.DoesNotExist:
+        return HttpResponse(f"W bazie nie ma użytkownika o id={pk}.")
