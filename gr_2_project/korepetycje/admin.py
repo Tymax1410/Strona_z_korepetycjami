@@ -1,3 +1,8 @@
 from django.contrib import admin
+from .models import Lekcja
 
-# Register your models here.
+class LekcjaAdmin(admin.ModelAdmin):
+    list_display = ["data_odbywania" , "nauczyciel" , "uczen", "status"]
+    list_filter = ["data_odbywania"]
+
+admin.site.register(Lekcja,LekcjaAdmin)
