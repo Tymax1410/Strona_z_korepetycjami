@@ -43,3 +43,7 @@ class Lekcja(models.Model):
         choices=Status.choices,
         default=Status.PLANOWANA
     )
+
+    class Meta:
+        verbose_name = "Lekcja"
+        verbose_name_plural = "Lekcje"
