@@ -31,7 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'rest_framework'
+    'rest_framework',
     'korepetycje.apps.KorepetycjeConfig',
     'django.contrib.admin',
     'django.contrib.auth',
