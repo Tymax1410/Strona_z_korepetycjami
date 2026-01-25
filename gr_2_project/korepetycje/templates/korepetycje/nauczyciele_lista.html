@@ -1,0 +1,39 @@
+{% extends "korepetycje/base.html" %}
+
+{% block title %}Lista Nauczycieli{% endblock %}
+
+{% block content %}
+    <h2>Nasi Nauczyciele</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Imię i Nazwisko</th>
+                <th>Email</th>
+                <th>Telefon</th>
+                <th>Przedmioty</th>
+                <th>Czynności</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for n in nauczyciele %}
+            <tr>
+                <td>{{ n.imie }} {{ n.nazwisko }}</td>
+                <td>{{ n.email }}</td>
+                <td>{{ n.numer_telefonu }}</td>
+                <td>
+                    {% for przedmiot in n.przedmioty.all %}
+                        {{ przedmiot.nazwa }}<br> {% empty %}
+                        Brak przedmiotów
+                    {% endfor %}
+                <td>
+                    <a href="{% url 'nauczyciel_szczegoly_html' n.id %}">Szczegóły</a>
+                    <a href="{% url 'nauczyciel_edit_html' n.pk %}">Edytuj</a>
+                    <a href="{% url 'nauczyciel_delete_html' n.pk %}">ZWOLNIJ!</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'nauczyciel_form_html' %}">Dodaj nauczyciela</a>
+{% endblock %}

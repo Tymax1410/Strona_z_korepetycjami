@@ -1,0 +1,15 @@
+{% extends "korepetycje/base.html" %}
+
+{% block title %}Dodaj nauczyciela{% endblock %}
+
+{% block content %}
+    <h2>Dodaj nowego nauczyciela</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Zapisz</button>
+    </form>
+
+    <a href="{% url 'nauczyciele_lista_html' %}">Anuluj</a>
+{% endblock %}
