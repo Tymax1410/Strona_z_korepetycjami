@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Przedmiot(models.Model):
     nazwa = models.CharField(max_length=100)
@@ -13,6 +14,8 @@ class Nauczyciel(models.Model):
     email = models.EmailField(unique=True)
     numer_telefonu = models.CharField(max_length=20)
     przedmioty = models.ManyToManyField(Przedmiot)
+    
+    wlasciciel = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return f"{self.imie} {self.nazwisko}"

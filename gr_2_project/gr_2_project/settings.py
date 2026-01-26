@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'rest_framework',
+    'rest_framework.authtoken',
     'korepetycje.apps.KorepetycjeConfig',
     'django.contrib.admin',
     'django.contrib.auth',

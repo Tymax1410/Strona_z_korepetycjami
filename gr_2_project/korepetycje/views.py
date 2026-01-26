@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.response import Response
 from .forms import NauczycielForm
 from .models import Nauczyciel
@@ -45,17 +47,19 @@ def nauczyciele_lista_html(request):
     return render(request, 'korepetycje/nauczyciele_lista.html', {'nauczyciele': nauczyciele})
 
 @api_view(['GET', "POST"])
+@authentication_classes([SessionAuthentication, BasicAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def lista_nauczycieli(request):
  
     if request.method == 'GET':
-        nauczyciele = Nauczyciel.objects.all()
+        nauczyciele = Nauczyciel.objects.filter(wlasciciel=request.user)
         serializer = NauczycielSerializer(nauczyciele, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     elif request.method == 'POST':
         serializer = NauczycielSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(wlasciciel=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
