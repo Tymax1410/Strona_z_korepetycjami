@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.response import Response
 from .forms import NauczycielForm
-from .models import Nauczyciel
+from .models import Nauczyciel, Przedmiot
 from .serializers import NauczycielSerializer
 
 def nauczyciel_delete_html(request,pk):
@@ -46,6 +46,19 @@ def nauczyciele_lista_html(request):
     nauczyciele = Nauczyciel.objects.all()
     return render(request, 'korepetycje/nauczyciele_lista.html', {'nauczyciele': nauczyciele})
 
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def nauczyciele_dla_przedmiotu(request, pk):
+    try:
+        przedmiot = Przedmiot.objects.get(pk=pk)
+    except Przedmiot.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    nauczyciele = Nauczyciel.objects.filter(przedmioty=pk)
+    serializer = NauczycielSerializer(nauczyciele, many=True)
+    return Response(serializer.data)
+
 @api_view(['GET', "POST"])
 @authentication_classes([SessionAuthentication, BasicAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -65,10 +78,12 @@ def lista_nauczycieli(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def nauczyciel(request, pk):
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication, BasicAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def nauczyciel_detail(request, pk):
     try:
-        nauczyciel = Nauczyciel.objects.get(pk=pk)
+        nauczyciel = Nauczyciel.objects.get(pk=pk, wlasciciel=request.user)
     except Nauczyciel.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -76,7 +91,16 @@ def nauczyciel(request, pk):
         serializer = NauczycielSerializer(nauczyciel)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    elif request.method == 'PUT':
+@api_view(['PUT', 'DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def nauczyciel_update_delete(request,pk):
+    try:
+        nauczyciel = Nauczyciel.objects.get(pk=pk, wlasciciel=request.user)
+    except Nauczyciel.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PUT':
         serializer = NauczycielSerializer(nauczyciel, data=request.data)
         if serializer.is_valid():
             serializer.save()

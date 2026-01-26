@@ -4,9 +4,11 @@ from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
     path('', views.lista_nauczycieli),
-    path('<int:pk>/', views.nauczyciel),
+    path('<int:pk>/', views.nauczyciel_detail, name='nauczyciel-detail'),
+    path('<int:pk>/zarzadzaj/', views.nauczyciel_update_delete, name='nauczyciel-update-delete'),
     path('szukaj/<str:fragment>/', views.nauczyciel_szukaj),
     path('przedmiot/<str:przedmiot>/', views.nauczyciel_przedmiot),
+    path('przedmiot/<int:pk>/nauczyciele/', views.nauczyciele_dla_przedmiotu, name='nauczyciele_dla_przedmiotu'),
     path('html/', views.nauczyciele_lista_html, name='nauczyciele_lista_html'),
     path('html/<int:id>/', views.nauczyciel_szczegoly_html, name='nauczyciel_szczegoly_html'),
     path('html/stworz_nauczyciela/', views.nauczyciel_create_html, name='nauczyciel_form_html'),
