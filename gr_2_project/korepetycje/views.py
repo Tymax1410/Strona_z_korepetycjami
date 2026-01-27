@@ -1,4 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
@@ -7,6 +10,28 @@ from rest_framework.response import Response
 from .forms import NauczycielForm
 from .models import Nauczyciel, Przedmiot
 from .serializers import NauczycielSerializer
+
+@login_required(login_url='/admin/login/')
+def test_uprawnien_nauczyciela(request):
+    nazwa_uprawnienia = 'korepetycje.can_view_other_owners'
+    
+    if request.user.has_perm(nazwa_uprawnienia):
+        nauczyciele = Nauczyciel.objects.all()
+        lista = ", ".join([n.imie for n in nauczyciele])
+        return HttpResponse(f"Masz uprawnienie '{nazwa_uprawnienia}'.<br>Widzisz wszystkich: {lista}")
+    
+    else:
+        return HttpResponse(f"BRAK uprawnienia '{nazwa_uprawnienia}'")
+
+@login_required(login_url='/admin/login/')
+def przedmiot_widok_dostepu(request, pk):
+    if not request.user.has_perm('korepetycje.view_przedmiot'):
+        raise PermissionDenied("Nie masz uprawnień do podglądania przedmiotów, przykro mi!")
+    try:
+        przedmiot = Przedmiot.objects.get(pk=pk)
+        return HttpResponse(f"Masz uprawnienia. To jest przedmiot: {przedmiot.nazwa}")
+    except Przedmiot.DoesNotExist:
+        return HttpResponse(f"Masz uprawnienia, ale przedmiot o ID={pk} nie istnieje.")
 
 def nauczyciel_delete_html(request,pk):
     nauczyciel = get_object_or_404(Nauczyciel, pk=pk)

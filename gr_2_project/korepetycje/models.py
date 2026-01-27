@@ -14,11 +14,16 @@ class Nauczyciel(models.Model):
     email = models.EmailField(unique=True)
     numer_telefonu = models.CharField(max_length=20)
     przedmioty = models.ManyToManyField(Przedmiot)
-    
     wlasciciel = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return f"{self.imie} {self.nazwisko}"
+    
+    class Meta:
+        permissions = [
+            ("can_view_other_owners", "Może widzieć nauczycieli innych użytkowników"),
+        ]
+
 
 
 class Uczen(models.Model):
