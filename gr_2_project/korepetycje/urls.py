@@ -1,20 +1,15 @@
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
-from django.urls import path
-from rest_framework.authtoken.views import obtain_auth_token
+
+router = DefaultRouter()
+router.register(r'przedmioty', views.PrzedmiotViewSet)
+router.register(r'nauczyciele', views.NauczycielViewSet)
+router.register(r'uczniowie', views.UczenViewSet)
+router.register(r'opinie', views.OpiniaViewSet)
+router.register(r'lekcje', views.LekcjaViewSet)
 
 urlpatterns = [
-    path('', views.lista_nauczycieli),
-    path('<int:pk>/', views.nauczyciel_detail, name='nauczyciel-detail'),
-    path('test-uprawnien/', views.test_uprawnien_nauczyciela),
-    path('<int:pk>/zarzadzaj/', views.nauczyciel_update_delete, name='nauczyciel-update-delete'),
-    path('szukaj/<str:fragment>/', views.nauczyciel_szukaj),
-    path('przedmiot/<str:przedmiot>/', views.nauczyciel_przedmiot),
-    path('przedmiot/<int:pk>/nauczyciele/', views.nauczyciele_dla_przedmiotu, name='nauczyciele_dla_przedmiotu'),
-    path('przedmiot/<int:pk>/check/', views.przedmiot_widok_dostepu),
-    path('html/', views.nauczyciele_lista_html, name='nauczyciele_lista_html'),
-    path('html/<int:id>/', views.nauczyciel_szczegoly_html, name='nauczyciel_szczegoly_html'),
-    path('html/stworz_nauczyciela/', views.nauczyciel_create_html, name='nauczyciel_form_html'),
-    path('html/edytuj_nauczyciela/<int:pk>/', views.nauczyciel_edit_html, name='nauczyciel_edit_html'),
-    path('html/usun_nauczyciela/<int:pk>/', views.nauczyciel_delete_html, name='nauczyciel_delete_html'),
-    path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
+    path('', include(router.urls)),
+    path('register/', views.UserRegistrationView.as_view(), name='register'),
 ]
