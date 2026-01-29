@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from rest_framework import viewsets, generics, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -13,13 +14,14 @@ from .serializers import NauczycielSerializer, PrzedmiotSerializer, UczenSeriali
 
 
 class UserRegistrationView(generics.CreateAPIView):
+    queryset = User.objects.all()
     serializer_class = UserRegistrationSerializer
     permission_classes = [AllowAny]
 
 class PrzedmiotViewSet(viewsets.ModelViewSet):
     queryset = Przedmiot.objects.all()
     serializer_class = PrzedmiotSerializer
-    permission_classes = [CustomDjangoModelPermissions]
+    permission_classes = [permissions.DjangoModelPermissionsOrAnonReadOnly]
 
 class NauczycielViewSet(viewsets.ModelViewSet):
     queryset = Nauczyciel.objects.all()
@@ -31,19 +33,24 @@ class NauczycielViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated()]
         return [permissions.IsAdminUser()]
 
-    @action(detail=False, methods=['get'])
-    def szukaj(self, request):
-        fragment = request.query_params.get('fragment', '')
-        nauczyciele = Nauczyciel.objects.filter(nazwisko__startswith=fragment)
-        serializer = self.get_serializer(nauczyciele, many=True)
-        return Response(serializer.data)
+    @action(detail=False, methods=['get']) 
+    def po_nazwisku(self, request):
+        nazwisko = request.query_params.get('nazwisko', None)
+        if nazwisko:
+            nauczyciele = Nauczyciel.objects.filter(nazwisko__icontains=nazwisko)
+            serializer = self.get_serializer(nauczyciele, many=True)
+            return Response(serializer.data)
+        return Response([])
 
     @action(detail=False, methods=['get'])
     def po_przedmiocie(self, request):
-        nazwa_przedmiotu = request.query_params.get('nazwa', '')
-        nauczyciele = Nauczyciel.objects.filter(przedmioty__nazwa=nazwa_przedmiotu)
-        serializer = self.get_serializer(nauczyciele, many=True)
-        return Response(serializer.data)
+        nazwa = request.query_params.get('nazwa', None)
+        if nazwa:
+            nauczyciele = Nauczyciel.objects.filter(przedmioty__nazwa__icontains=nazwa).distinct()
+            serializer = self.get_serializer(nauczyciele, many=True)
+            return Response(serializer.data)
+        return Response([])
+
 
 class UczenViewSet(viewsets.ModelViewSet):
     queryset = Uczen.objects.all()

@@ -26,7 +26,11 @@ class PrzedmiotSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class NauczycielSerializer(serializers.ModelSerializer):
-    przedmioty = serializers.StringRelatedField(many=True)
+    przedmioty = serializers.SlugRelatedField(
+        many=True,
+        slug_field='nazwa',
+        queryset=Przedmiot.objects.all()
+        )
     class Meta:
         model = Nauczyciel
         fields = '__all__'
@@ -61,7 +65,9 @@ class LekcjaSerializer(serializers.ModelSerializer):
 
 class OpiniaSerializer(serializers.ModelSerializer):
     uczen_str = serializers.CharField(source='uczen', read_only=True)
+    nauczyciel_str = serializers.CharField(source='nauczyciel', read_only=True)
+
     class Meta:
         model = Opinia
-        fields = '__all__'
+        fields = ['id', 'nauczyciel', 'nauczyciel_str', 'uczen', 'uczen_str', 'ocena', 'data_wystawienia']
         read_only_fields = ['uczen', 'data_wystawienia']
